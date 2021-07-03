@@ -1,38 +1,31 @@
 import * as vscode from "vscode";
-import * as path from "path";
 
-export function getGlobalOptions(document: vscode.TextDocument): EasyLessOptions {
-  const lessFilenamePath: path.ParsedPath = path.parse(document.fileName);
+export function getGlobalOptions(): EasyLessOptions {
+  //默认设置
   const defaultOptions: EasyLessOptions = {
     plugins: [],
-    rootFileInfo: getRootFileInfo(lessFilenamePath),
     relativeUrls: false,
+    compress: false,
+    ieCompat: true,
+    out: '~/css',
+    outExt: '.min.css',
+    sourceMap: true,
+    sourceMapFileInline: true,
+    javascriptEnabled: false,
+    outputWindow: true,
+    excludes: ['**/node_modules/**', '**/out/**']
   };
 
-  const configuredOptions = vscode.workspace
-    .getConfiguration("lessWatchCompile.settings", document.uri)
-    .get<EasyLessOptions>("compile");
-  return { ...defaultOptions, ...configuredOptions };
-}
-
-export function getRootFileInfo(parsedPath: path.ParsedPath): Less.RootFileInfo {
-  parsedPath.ext = ".less";
-  parsedPath.base = parsedPath.name + ".less";
+  const configuredOptions: EasyLessOptions | undefined = vscode.workspace
+    .getConfiguration('lessWatchCompile.settings').get<EasyLessOptions>('compile');
 
   return {
-    filename: parsedPath.base,
-    currentDirectory: parsedPath.dir,
-    relativeUrls: false,
-    entryPath: parsedPath.dir + "/",
-    rootpath: null!,
-    rootFilename: null!,
-    reference: undefined!,
+    ...defaultOptions, ...configuredOptions
   };
 }
 
 export interface EasyLessOptions extends Less.Options {
-  main?: string | string[];
-  out?: string | boolean;
+  out?: string;
   outExt?: string;
   sourceMap?: any;
   relativeUrls?: boolean;
@@ -40,9 +33,6 @@ export interface EasyLessOptions extends Less.Options {
   autoprefixer?: string | string[];
   javascriptEnabled?: boolean;
   rootFileInfo?: Less.RootFileInfo;
-  // sourceMapURL?: string;
-  // sourceMapBasepath?: string;
-  // sourceMapRootpath?: string;
-  // outputSourceFiles?: boolean;
-  // sourceMapFilename?: string;
+  outputWindow?: boolean;
+  excludes?: Array<string>;
 }

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { LessCompiler } from './LessCompiler';
 
 export class OutputWindow {
 
@@ -14,7 +15,7 @@ export class OutputWindow {
   }
 
   static Show(msgHeadline: string, MsgBody: string[] | null, popUpToUI: boolean = false, addEndLine = true) {
-
+    if (!LessCompiler.globalOptions.outputWindow) return;
     if (msgHeadline) {
       OutputWindow.MsgChannel.appendLine(msgHeadline);
     }

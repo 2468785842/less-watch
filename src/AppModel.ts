@@ -1,50 +1,74 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as glob from 'glob';
 
 import { StatusBarUi } from './StatusBarUi';
 import { OutputWindow } from './OutputWindow';
-import * as LessCompiler from './LessCompiler';
-import * as Configuration from "./Configuration";
+import { LessCompiler } from './LessCompiler';
+import { getDocument } from './extension';
 
 export class AppModel {
-  isWatching: boolean = false;
-
-  static get basePath(): string | undefined {
-    if (vscode.window.activeTextEditor) {
-      return path.basename(vscode.window.activeTextEditor.document.fileName);
-    }
-  }
+  private isWatching: boolean = false;
 
   public constructor() {
     StatusBarUi.init();
-    AppModel.basePath;
   }
 
-  public compileAllFiles(document: vscode.TextDocument, watchingMode: boolean = true): void {
+  public compileAllFiles(watchingMode: boolean = true): void {
     if (this.isWatching) {
       vscode.window.showInformationMessage('already watching...');
       return;
     }
     StatusBarUi.working();
+    const excludes: Array<string> | undefined = LessCompiler.globalOptions.excludes;
+    const rootPath: string | undefined = vscode.workspace.rootPath;
+    if (excludes && rootPath) {
 
+      if (!vscode.workspace.rootPath) throw "workspace Error";
 
-    this.GenerateCssAndMap(document).then(() => {
-      if (!watchingMode) {
-        this.isWatching = true; // tricky to toggle status
-      }
-      this.toggleStatusUI();
-    });
+      let basePath: string = vscode.workspace.rootPath;
+      let compileListAsync: Promise<Error | null>[] = [];
+
+      //glob搜索文件
+      glob('**/*.less', { cwd: basePath, mark: true, ignore: excludes },
+        (error: Error | null, fileList: string[]) => {
+
+          if (error) throw "编译所有文件时出错!";
+
+          fileList.forEach((val: string) => {
+            compileListAsync.push(
+              this.GenerateCssAndMap(path.join(basePath, val))
+            );
+          });
+        }
+      );
+
+      Promise.all(compileListAsync).then(() => {
+        if (!watchingMode) {
+          this.isWatching = true; // tricky to toggle status
+        }
+        this.toggleStatusUI();
+      });
+    }
+
   }
 
-  public async compileOnSave(document: vscode.TextDocument) {
-    if (!this.isWatching) return;
+  public async compileOnSave() {
+    const document: vscode.TextDocument | undefined = getDocument();
+
+    if (!this.isWatching || !document) return;
 
     const currentFile: string = document.fileName;
+
     if (!currentFile.endsWith('.less')) return;
+
     OutputWindow.Show('Change Detected...', [path.basename(currentFile)]);
 
-    this.GenerateCssAndMap(document).then(() => {
+    this.GenerateCssAndMap(currentFile).then(() => {
       OutputWindow.Show('Watching...', null);
+    }, error => {
+      OutputWindow.Show(error, ['Error In: ', path.basename(currentFile)]);
+      StatusBarUi.compilationError(this.isWatching);
     });
 
   }
@@ -59,22 +83,26 @@ export class AppModel {
   }
 
   public openOutputWindow(): void {
-
-  }
+    LessCompiler.globalOptions.outputWindow = true;
+  };
 
   /**
    * 生成 Css 和 Map
-   * @param popUpOutputWindow 
-   * @returns 
    */
-  private GenerateCssAndMap(document: vscode.TextDocument) {
+  private GenerateCssAndMap(lessFile: string): Promise<Error | null> {
 
-    return new Promise(resolve => {
-      const globalOptions: Configuration.EasyLessOptions = Configuration.getGlobalOptions(
-        document
-      );
-      LessCompiler.compile(document.fileName, document.getText(), globalOptions);
-      resolve(null);
+    return new Promise((resolve, reject) => {
+
+      OutputWindow.Show('Generated :', null, false, false);
+
+      LessCompiler.compile(lessFile).then(() => {
+        StatusBarUi.compilationSuccess(this.isWatching);
+        resolve(null);
+      }).catch(error => {
+        StatusBarUi.compilationError(this.isWatching);
+        reject(error);
+      });
+
     });
   }
 
@@ -92,8 +120,9 @@ export class AppModel {
 
   }
 
-  dispose() {
+  public dispose() {
     StatusBarUi.dispose();
     OutputWindow.dispose();
   }
+
 }

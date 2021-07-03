@@ -1,20 +1,23 @@
 import * as vscode from 'vscode';
 import { AppModel } from './AppModel';
+
 let appModel: AppModel;
+
+export function getDocument(): vscode.TextDocument | undefined {
+	const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
+	if (activeEditor) {
+		return activeEditor.document;
+	}
+	return undefined;
+}
 export function activate(context: vscode.ExtensionContext) {
 
 	appModel = new AppModel();
 
+
 	const disposableCompileAll =
 		vscode.commands.registerCommand('lessWatch.command.watchLessOn', () => {
-			const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
-			if (activeEditor) {
-				const document = activeEditor.document;
-				if (document.fileName.endsWith(".less")) {
-					document.save();
-					appModel.compileAllFiles(document);
-				}
-			}
+			appModel.compileAllFiles();
 		});
 
 	const disposableStopWatching =
@@ -22,12 +25,9 @@ export function activate(context: vscode.ExtensionContext) {
 			appModel.stopWatching();
 		});
 
-	const disposableOneTimeCompileSass =
+	const disposableOneTimeCompileLess =
 		vscode.commands.registerCommand('lessWatch.command.oneTimeCompileLess', () => {
-			const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
-			if (activeEditor) {
-				appModel.compileAllFiles(activeEditor.document, false);
-			}
+			appModel.compileAllFiles(false);
 		});
 
 	const disposableOpenOutputWindow =
@@ -37,17 +37,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const disposableOnDivSave =
 		vscode.workspace.onDidSaveTextDocument(() => {
-
-			const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
-			if (activeEditor) {
-				appModel.compileOnSave(activeEditor.document);
-			}
+			appModel.compileOnSave();
 		});
 
 	context.subscriptions.push(
 		disposableCompileAll,
 		disposableStopWatching,
-		disposableOneTimeCompileSass,
+		disposableOneTimeCompileLess,
 		disposableOpenOutputWindow,
 		disposableOnDivSave
 	);

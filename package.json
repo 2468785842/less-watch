@@ -1,16 +1,27 @@
 {
   "name": "less-watch",
-  "displayName": "less_watch",
-  "description": "监视Less文件 实时编译成css",
-  "version": "0.0.1",
+  "displayName": "less watch",
+  "description": "listen less file compilation to css(监视Less文件 实时编译成css)",
+  "version": "0.0.2",
   "publisher": "2468785842",
   "engines": {
     "vscode": "^1.57.0"
   },
+  "icon": "logo.jpg",
   "repository": {
     "type": "git",
     "url": "https://github.com/2468785842/less-watch.git"
   },
+  "keywords": [
+    "watch",
+    "less",
+    "less watch",
+    "watch less",
+    "watch live",
+    "live watch",
+    "Compiler",
+    "Less Compiler"
+  ],
   "categories": [
     "Other"
   ],
@@ -46,60 +57,55 @@
       "properties": {
         "lessWatchCompile.settings.compile": {
           "type": "object",
-          "description": "Configuration options for Easy LESS extension.",
-          "scope": "resource",
+          "description": "Configuration options for LESS Watch extension.",
           "properties": {
+            "excludes": {
+              "type": "array",
+              "default": [
+                "**/node_modules/**",
+                "**/out/"
+              ],
+              "description": "exclude of Scan Folder (不需要扫描的文件夹)"
+            },
             "compress": {
               "type": "boolean",
-              "description": "Compress .css files? (removes unnecessary white-space)",
-              "default": false
+              "default": false,
+              "description": "Compress .css files? (removes unnecessary white-space)"
             },
             "ieCompat": {
               "type": "boolean",
-              "description": "IE8 compatiblity mode? (restricts size of data-uri to 32KB)",
-              "default": true
+              "default": true,
+              "description": "IE8 compatiblity mode? (restricts size of data-uri to 32KB)"
             },
             "sourceMap": {
               "type": "boolean",
               "description": "Should .map files be generated?",
-              "default": false
+              "default": true
             },
             "sourceMapFileInline": {
               "type": "boolean",
               "description": "Should source maps be inlined within the .css file? (requires sourceMap: true)",
-              "default": false
+              "default": true
             },
             "out": {
-              "type": [
-                "boolean",
-                "string",
-                "null"
-              ],
+              "type": "string",
               "description": "Default 'out' setting. Set to false to default to no output.",
-              "default": null
+              "default": "./css"
             },
             "outExt": {
               "type": "string",
               "description": "The file extension to use for generated .css files",
-              "default": ".css"
-            },
-            "main": {
-              "type": [
-                "string",
-                "array"
-              ],
-              "description": "Compile specific .less file(s) when any .less file is saved.",
-              "default": "main.less"
+              "default": ".min.css"
             },
             "relativeUrls": {
               "type": "boolean",
-              "description": "Rewrite URLs from imported files, relative to the importing file (default: false)",
-              "default": false
+              "default": false,
+              "description": "Rewrite URLs from imported files, relative to the importing file (default: false)"
             },
             "javascriptEnabled": {
               "type": "boolean",
-              "description": "Enable inline javasript in less files within backticks (`) (default: false)",
-              "default": false
+              "default": false,
+              "description": "Enable inline javascript in less files within backticks (`) (default: false)"
             },
             "autoprefixer": {
               "type": [
@@ -109,6 +115,11 @@
               ],
               "description": "The 'browsers' argument for autoprefixer plugin (see https://github.com/ai/browserslist#queries)",
               "default": "> 5%, last 2 Chrome versions, not ie 6-9"
+            },
+            "outputWindow": {
+              "type": "boolean",
+              "default": true,
+              "description": "打开编译详细信息"
             },
             "math": {
               "type": "string",
