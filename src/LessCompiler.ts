@@ -34,7 +34,7 @@ export class LessCompiler {
     const parse: path.ParsedPath = path.parse(lessFile);
 
     let cssFile: string;
-    
+
     if (!out) throw "(setting) out is undefined";
     if (!extension) throw "(setting) outExt is undefined";
 
@@ -102,8 +102,8 @@ export class LessCompiler {
   }
 
   public static interpolatePath(outPath: string, parse: path.ParsedPath): string {
-    let out = outPath + parse.name + parse.ext;
-    
+    let out = path.join(outPath, parse.name + parse.ext);
+
     if (!vscode.workspace.rootPath) throw "placeholder replace Error";
 
     if (out.startsWith("~")) {
