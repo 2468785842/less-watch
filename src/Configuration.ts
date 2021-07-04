@@ -1,35 +1,36 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
 
-export function getGlobalOptions(): EasyLessOptions {
+export function getGlobalOptions(): LessWatchOptions {
   //默认设置
-  const defaultOptions: EasyLessOptions = {
+  const defaultOptions: LessWatchOptions = {
     plugins: [],
     relativeUrls: false,
     compress: false,
     ieCompat: true,
     out: '~/css',
     outExt: '.min.css',
-    sourceMap: true,
-    sourceMapFileInline: true,
+    sourceMap: {
+      outputSourceFiles: true,
+      sourceMapFileInline: true
+    },
     javascriptEnabled: false,
     outputWindow: true,
     excludes: ['**/node_modules/**', '**/out/**']
   };
 
-  const configuredOptions: EasyLessOptions | undefined = vscode.workspace
-    .getConfiguration('lessWatchCompile.settings').get<EasyLessOptions>('compile');
+  const configuredOptions: LessWatchOptions | undefined = vscode.workspace
+    .getConfiguration('lessWatchCompile.settings').get<LessWatchOptions>('compile');
 
   return {
     ...defaultOptions, ...configuredOptions
   };
 }
 
-export interface EasyLessOptions extends Less.Options {
+export interface LessWatchOptions extends Less.Options {
   out?: string;
   outExt?: string;
-  sourceMap?: any;
+  sourceMap?: Less.SourceMapOption;
   relativeUrls?: boolean;
-  sourceMapFileInline?: boolean;
   autoprefixer?: string | string[];
   javascriptEnabled?: boolean;
   rootFileInfo?: Less.RootFileInfo;

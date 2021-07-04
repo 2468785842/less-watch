@@ -2,7 +2,7 @@
   "name": "less-watch",
   "displayName": "less watch",
   "description": "listen less file compilation to css(监视Less文件 实时编译成css)",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "2468785842",
   "engines": {
     "vscode": "^1.57.0"
@@ -33,17 +33,17 @@
     "commands": [
       {
         "command": "lessWatch.command.watchLessOn",
-        "title": "watch less on",
+        "title": "Watch Less On",
         "category": "Less Watch"
       },
       {
         "command": "lessWatch.command.watchLessOff",
-        "title": "watch less off",
+        "title": "Watch Less Off",
         "category": "Less Watch"
       },
       {
-        "command": "lessWatch.command.oneTimeCompileLess",
-        "title": "Compile Less - Without Watch Mode",
+        "command": "lessWatch.command.compileAllLess",
+        "title": "Compile All Less",
         "category": "Less Watch"
       },
       {
@@ -78,14 +78,20 @@
               "description": "IE8 compatiblity mode? (restricts size of data-uri to 32KB)"
             },
             "sourceMap": {
-              "type": "boolean",
-              "description": "Should .map files be generated?",
-              "default": true
-            },
-            "sourceMapFileInline": {
-              "type": "boolean",
-              "description": "Should source maps be inlined within the .css file? (requires sourceMap: true)",
-              "default": true
+              "type": "object",
+              "description": "setting of generated .map",
+              "properties": {
+                "outputSourceFiles": {
+                  "type": "boolean",
+                  "description": "Should generated .map file?",
+                  "default": true
+                },
+                "sourceMapFileInline": {
+                  "type": "boolean",
+                  "description": "Should source maps be inlined within the .css file? (requires sourceMap: true)",
+                  "default": true
+                }
+              }
             },
             "out": {
               "type": "string",

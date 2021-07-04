@@ -8,6 +8,7 @@ import { LessCompiler } from './LessCompiler';
 import { getDocument } from './extension';
 
 export class AppModel {
+
   private isWatching: boolean = false;
 
   public constructor() {
@@ -15,19 +16,22 @@ export class AppModel {
   }
 
   public compileAllFiles(watchingMode: boolean = true): void {
-    if (this.isWatching) {
+
+    if (watchingMode) {
       vscode.window.showInformationMessage('already watching...');
-      return;
     }
+
     StatusBarUi.working();
+
     const excludes: Array<string> | undefined = LessCompiler.globalOptions.excludes;
     const rootPath: string | undefined = vscode.workspace.rootPath;
+
     if (excludes && rootPath) {
 
       if (!vscode.workspace.rootPath) throw "workspace Error";
 
       let basePath: string = vscode.workspace.rootPath;
-      let compileListAsync: Promise<Error | null>[] = [];
+      let compileListAsync: Promise<Error | void>[] = [];
 
       //glob搜索文件
       glob('**/*.less', { cwd: basePath, mark: true, ignore: excludes },
@@ -44,16 +48,15 @@ export class AppModel {
       );
 
       Promise.all(compileListAsync).then(() => {
-        if (!watchingMode) {
-          this.isWatching = true; // tricky to toggle status
+        if (watchingMode) {
+          this.toggleStatusUI();
         }
-        this.toggleStatusUI();
       });
     }
 
   }
 
-  public async compileOnSave() {
+  public compileOnSave() {
     const document: vscode.TextDocument | undefined = getDocument();
 
     if (!this.isWatching || !document) return;
@@ -84,20 +87,18 @@ export class AppModel {
 
   public openOutputWindow(): void {
     LessCompiler.globalOptions.outputWindow = true;
-  };
+  }
 
   /**
    * 生成 Css 和 Map
    */
-  private GenerateCssAndMap(lessFile: string): Promise<Error | null> {
+  private GenerateCssAndMap(lessFile: string): Promise<Error | void> {
 
     return new Promise((resolve, reject) => {
 
-      OutputWindow.Show('Generated :', null, false, false);
-
       LessCompiler.compile(lessFile).then(() => {
         StatusBarUi.compilationSuccess(this.isWatching);
-        resolve(null);
+        resolve();
       }).catch(error => {
         StatusBarUi.compilationError(this.isWatching);
         reject(error);

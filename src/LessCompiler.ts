@@ -4,6 +4,8 @@ import * as mkpath from "mkpath";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as Configuration from "./Configuration";
+
+
 import { LessDocumentResolverPlugin } from "./LessDocumentResolverPlugin";
 import { OutputWindow } from "./OutputWindow";
 
@@ -12,12 +14,12 @@ import { OutputWindow } from "./OutputWindow";
  */
 export class LessCompiler {
 
-  private static _globalOptions: Configuration.EasyLessOptions | undefined;
+  private static _globalOptions: Configuration.LessWatchOptions | undefined;
 
   /**
    * 全局设置
    */
-  public static get globalOptions(): Configuration.EasyLessOptions {
+  public static get globalOptions(): Configuration.LessWatchOptions {
     if (!LessCompiler._globalOptions) {
       const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
       if (activeEditor) {
@@ -29,44 +31,43 @@ export class LessCompiler {
 
   // compile the given less file
   public static async compile(lessFile: string): Promise<void> {
+
     const out: string | undefined = LessCompiler.globalOptions.out;
     const extension: string | undefined = LessCompiler.globalOptions.outExt;
-    const parse: path.ParsedPath = path.parse(lessFile);
+    const sourceMap: Less.SourceMapOption | undefined = LessCompiler.globalOptions.sourceMap;
 
-    let cssFile: string;
-
+    //判断设置是否定义
     if (!out) throw "(setting) out is undefined";
     if (!extension) throw "(setting) outExt is undefined";
+    if (!sourceMap) throw "(setting) sourceMap is undefined";
 
     //替换特殊字符 . ~
-    cssFile = LessCompiler.interpolatePath(out, {
-      ...parse, ext: extension
+    let cssFile: string = LessCompiler.interpolatePath(out, {
+      ...path.parse(lessFile), ext: extension
     });
+
     const content = await this.readFilePromise(lessFile, "utf-8");
 
-    // sourceMap
+    /************* generated sourceMap *************/
     let sourceMapFile: string | undefined;
-    if (LessCompiler.globalOptions.sourceMap) {
-      // currently just has support for writing .map file to same directory
-      const lessPath: string = path.parse(lessFile).dir;
-      const cssPath: string = path.parse(cssFile).dir;
-      const lessRelativeToCss: string = path.relative(cssPath, lessPath);
 
-      const sourceMapOptions = <Less.SourceMapOption>{
-        outputSourceFiles: false,
-        sourceMapBasepath: lessPath,
-        sourceMapFileInline: LessCompiler.globalOptions.sourceMapFileInline,
-        sourceMapRootpath: lessRelativeToCss,
-      };
+    const lessPath: string = path.parse(lessFile).dir;
+    const cssPath: string = path.parse(cssFile).dir;
+    const lessRelativeToCss: string = path.relative(cssPath, lessPath);
 
-      if (!sourceMapOptions.sourceMapFileInline) {
-        sourceMapFile = path.parse(cssFile).dir + path.parse(cssFile).name + ".map" + extension;
-      }
+    const sourceMapOptions = <Less.SourceMapOption>{
+      ...sourceMap,
+      sourceMapBasepath: lessPath,
+      sourceMapRootpath: lessRelativeToCss,
+    };
 
-      this.globalOptions.sourceMap = sourceMapOptions;
+    if (sourceMapOptions.sourceMapFileInline) {
+      sourceMapFile = path.join(path.parse(cssFile).dir, path.parse(lessFile).name + extension + ".map");
     }
 
-    // plugins
+    this.globalOptions.sourceMap = sourceMapOptions;
+
+    /************* set plugins *************/
     this.globalOptions.plugins = [];
     if (this.globalOptions.autoprefixer) {
       const LessPluginAutoPrefix = require("less-plugin-autoprefix");
@@ -79,7 +80,7 @@ export class LessCompiler {
     this.globalOptions.plugins.push(new LessDocumentResolverPlugin());
 
     // set up the parser
-    const output = await less.render(content, this.globalOptions);
+    const output: Less.RenderOutput = await less.render(content, this.globalOptions);
 
     await this.writeFileContents(cssFile, output.css);
     OutputWindow.Show('Css Compilation Success:', [cssFile], false, false);
@@ -155,4 +156,15 @@ export class LessCompiler {
       });
     });
   }
+
+  /**
+   * 判断设置是否定义
+   */
+  static settingIsDefined<T>(setting: T | undefined, errorMsg: string): setting is T {
+    if (!setting) {
+      throw errorMsg;
+    }
+    return setting !== undefined;
+  }
+
 }

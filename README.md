@@ -27,3 +27,19 @@ select less file then click statusbar right of `watch less` listen
         "**/node_modules/**"//rules see glob
       ]
     ```
+  - sourceMap(.map文件设置):
+    ```json
+      "sourceMap": {
+        "outputSourceFiles": true,
+        "sourceMapFileInline": true
+      }
+    ```
+    - outputSourceFiles: 是否输出.map文件
+    - sourceMapFileInline: 是否在编译后的css文件末尾追加.map文件uri
+
+## vscode Command
+  - 使用<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>p</kbd>快捷键打开输入框
+    - 输入`Watch Less On`: 开启监听
+    - 输入`Watch Less Off`: 关闭监听
+    - 输入`Open Less Watch Output Window`: 打开输出信息
+    - 输入`Compile All Less`: 编译文件夹下所有.less文件

@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
+
 import { AppModel } from './AppModel';
+import { LessCompiler } from './LessCompiler';
 
 let appModel: AppModel;
 
@@ -10,10 +12,14 @@ export function getDocument(): vscode.TextDocument | undefined {
 	}
 	return undefined;
 }
+
 export function activate(context: vscode.ExtensionContext) {
 
 	appModel = new AppModel();
 
+	if (!LessCompiler.globalOptions.outputWindow) {
+		appModel.openOutputWindow();
+	}
 
 	const disposableCompileAll =
 		vscode.commands.registerCommand('lessWatch.command.watchLessOn', () => {
@@ -26,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 	const disposableOneTimeCompileLess =
-		vscode.commands.registerCommand('lessWatch.command.oneTimeCompileLess', () => {
+		vscode.commands.registerCommand('lessWatch.command.compileAllLess', () => {
 			appModel.compileAllFiles(false);
 		});
 
