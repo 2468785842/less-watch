@@ -5,12 +5,21 @@ import { LessCompiler } from './LessCompiler';
 
 let appModel: AppModel;
 
+
 export function getDocument(): vscode.TextDocument | undefined {
 	const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
 	if (activeEditor) {
 		return activeEditor.document;
 	}
 	return undefined;
+}
+
+export function getRootPath(): string {
+	const workspaceFolder: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
+	if (workspaceFolder) {
+		return workspaceFolder[0].uri.fsPath;
+	}
+	throw "workspace folder error";
 }
 
 export function activate(context: vscode.ExtensionContext) {

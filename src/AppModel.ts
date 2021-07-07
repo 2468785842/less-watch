@@ -5,7 +5,7 @@ import * as glob from 'glob';
 import { StatusBarUi } from './StatusBarUi';
 import { OutputWindow } from './OutputWindow';
 import { LessCompiler } from './LessCompiler';
-import { getDocument } from './extension';
+import { getDocument, getRootPath } from './extension';
 
 export class AppModel {
 
@@ -24,13 +24,10 @@ export class AppModel {
     StatusBarUi.working();
 
     const excludes: Array<string> | undefined = LessCompiler.globalOptions.excludes;
-    const rootPath: string | undefined = vscode.workspace.rootPath;
 
-    if (excludes && rootPath) {
+    if (excludes) {
 
-      if (!vscode.workspace.rootPath) throw "workspace Error";
-
-      let basePath: string = vscode.workspace.rootPath;
+      let basePath: string = getRootPath();
       let compileListAsync: Promise<Error | void>[] = [];
 
       //glob搜索文件

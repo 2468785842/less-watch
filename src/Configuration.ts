@@ -5,7 +5,7 @@ export function getGlobalOptions(): LessWatchOptions {
   const defaultOptions: LessWatchOptions = {
     plugins: [],
     relativeUrls: false,
-    compress: false,
+    compress: true,
     ieCompat: true,
     out: '~/css',
     outExt: '.min.css',
@@ -27,13 +27,13 @@ export function getGlobalOptions(): LessWatchOptions {
 }
 
 export interface LessWatchOptions extends Less.Options {
-  out?: string;
-  outExt?: string;
-  sourceMap?: Less.SourceMapOption;
-  relativeUrls?: boolean;
+  out: string;
+  outExt: string;
+  sourceMap: Less.SourceMapOption;
+  relativeUrls: boolean;
   autoprefixer?: string | string[];
-  javascriptEnabled?: boolean;
+  javascriptEnabled: boolean;
   rootFileInfo?: Less.RootFileInfo;
-  outputWindow?: boolean;
-  excludes?: Array<string>;
+  outputWindow: boolean;
+  excludes: Array<string>;
 }

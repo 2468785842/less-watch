@@ -9,12 +9,14 @@ import * as Configuration from "./Configuration";
 import { LessDocumentResolverPlugin } from "./LessDocumentResolverPlugin";
 import { OutputWindow } from "./OutputWindow";
 
+import { getRootPath } from "./extension";
+
 /**
  * 便于编译文件
  */
 export class LessCompiler {
 
-  private static _globalOptions: Configuration.LessWatchOptions | undefined;
+  private static _globalOptions: Configuration.LessWatchOptions;
 
   /**
    * 全局设置
@@ -26,27 +28,22 @@ export class LessCompiler {
         LessCompiler._globalOptions = Configuration.getGlobalOptions();
       }
     }
-    return LessCompiler._globalOptions || {};
+    return LessCompiler._globalOptions;
   }
 
   // compile the given less file
   public static async compile(lessFile: string): Promise<void> {
 
-    const out: string | undefined = LessCompiler.globalOptions.out;
-    const extension: string | undefined = LessCompiler.globalOptions.outExt;
-    const sourceMap: Less.SourceMapOption | undefined = LessCompiler.globalOptions.sourceMap;
-
-    //判断设置是否定义
-    if (!out) throw "(setting) out is undefined";
-    if (!extension) throw "(setting) outExt is undefined";
-    if (!sourceMap) throw "(setting) sourceMap is undefined";
+    const out: string = LessCompiler.globalOptions.out;
+    const extension: string = LessCompiler.globalOptions.outExt;
+    const sourceMap: Less.SourceMapOption = LessCompiler.globalOptions.sourceMap;
 
     //替换特殊字符 . ~
     let cssFile: string = LessCompiler.interpolatePath(out, {
       ...path.parse(lessFile), ext: extension
     });
 
-    const content = await this.readFilePromise(lessFile, "utf-8");
+    const content: string = await this.readFilePromise(lessFile, "utf-8");
 
     /************* generated sourceMap *************/
     let sourceMapFile: string | undefined;
@@ -79,6 +76,9 @@ export class LessCompiler {
 
     this.globalOptions.plugins.push(new LessDocumentResolverPlugin());
 
+
+    this.globalOptions.paths = [path.parse(lessFile).dir];
+
     // set up the parser
     const output: Less.RenderOutput = await less.render(content, this.globalOptions);
 
@@ -102,38 +102,37 @@ export class LessCompiler {
     return browsers.map((browser) => browser.trim());
   }
 
+  //replace ~ and . and / placeholder
   public static interpolatePath(outPath: string, parse: path.ParsedPath): string {
     let out = path.join(outPath, parse.name + parse.ext);
 
-    if (!vscode.workspace.rootPath) throw "placeholder replace Error";
+    let interpolatePath: string = getRootPath();
 
-    if (out.startsWith("~")) {
-      out = out.replace(/\~/g, parse.dir);
-    } else if (out.startsWith(".")) {
-      out = out.replace(/\./g, vscode.workspace.rootPath);
-    } else {
-      out = vscode.workspace.rootPath + out;
+    if (out.startsWith('~')) {
+      interpolatePath = parse.dir;
     }
 
-    return path.join(out);
+    if (out.startsWith('~') || out.startsWith('.')) {
+      out = out.substr(1);
+    }
+
+    console.log(path.join(interpolatePath, out));
+    return path.join(interpolatePath, out);
   }
 
   /**
    * 写入css
    */
-  static writeFileContents(this: void, filepath: string, content: any): Promise<any> {
+  static writeFileContents(filepath: string, content: string): Promise<Error | void> {
     return new Promise((resolve, reject) => {
       mkpath(path.dirname(filepath), (err) => {
         if (err) {
           return reject(err);
         }
 
-        fs.writeFile(filepath, content.toString(), (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(void 0);
-          }
+        fs.writeFile(filepath, content, (err) => {
+          if (err) reject(err);
+          else resolve();
         });
       });
     });
@@ -145,7 +144,7 @@ export class LessCompiler {
    * @param encoding 编码
    * @returns 异步对象
    */
-  static readFilePromise(filePath: string, encoding: string): Promise<string> {
+  public static readFilePromise(filePath: string, encoding: string): Promise<string> {
     return new Promise((resolve, reject) => {
       fs.readFile(filePath, encoding, (err: any, data: string) => {
         if (err) {
@@ -155,16 +154,6 @@ export class LessCompiler {
         }
       });
     });
-  }
-
-  /**
-   * 判断设置是否定义
-   */
-  static settingIsDefined<T>(setting: T | undefined, errorMsg: string): setting is T {
-    if (!setting) {
-      throw errorMsg;
-    }
-    return setting !== undefined;
   }
 
 }

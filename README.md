@@ -36,6 +36,8 @@ select less file then click statusbar right of `watch less` listen
     ```
     - outputSourceFiles: 是否输出.map文件
     - sourceMapFileInline: 是否在编译后的css文件末尾追加.map文件uri
+  - compress(压缩css文件):
+    - default: true
 
 ## vscode Command
   - 使用<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>p</kbd>快捷键打开输入框
