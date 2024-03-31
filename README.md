@@ -23,7 +23,7 @@ select less file then click statusbar right of `watch less` listen
     ```
   - excludes（不需要扫描的文件夹):
     ```json
-      "excludes: [
+      "excludes": [
         "**/node_modules/**"//rules see glob
       ]
     ```
