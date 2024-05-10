@@ -2,7 +2,7 @@
   "name": "less-watch",
   "displayName": "less watch",
   "description": "listen less file compilation to css(监视Less文件 实时编译成css)",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "publisher": "2468785842",
   "engines": {
     "vscode": "^1.89.0"

@@ -24,7 +24,7 @@ select less file then click statusbar right of `watch less` listen
   - excludes（不需要扫描的文件夹):
     ```json
       "excludes": [
-        "**/node_modules/**"//rules see glob
+        "**/node_modules/**"// glob rules 
       ]
     ```
   - sourceMap(.map文件设置):
