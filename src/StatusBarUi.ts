@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
 
 export class StatusBarUi {
-
     private static _statusBarItem: vscode.StatusBarItem;
 
     private static get statusBarItem(): vscode.StatusBarItem {
         if (!StatusBarUi._statusBarItem) {
-            StatusBarUi._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 200);
+            StatusBarUi._statusBarItem = vscode.window.createStatusBarItem(
+                vscode.StatusBarAlignment.Right,
+                200
+            );
             this.statusBarItem.show();
         }
         return StatusBarUi._statusBarItem;
@@ -30,9 +32,10 @@ export class StatusBarUi {
         StatusBarUi.statusBarItem.tooltip = 'watch of Less to CSS';
     }
 
-    public static working(workingMsg: string = "Working on it..."): void {
+    public static working(workingMsg: string = 'Working on it...'): void {
         StatusBarUi.statusBarItem.text = `$(pulse) ${workingMsg}`;
-        StatusBarUi.statusBarItem.tooltip = 'In case if it takes long time, Show output window and report.';
+        StatusBarUi.statusBarItem.tooltip =
+            'In case if it takes long time, Show output window and report.';
         StatusBarUi.statusBarItem.command = undefined;
     }
 
@@ -46,8 +49,7 @@ export class StatusBarUi {
                 StatusBarUi.statusBarItem.color = 'inherit';
                 StatusBarUi.watching();
             }, 4500);
-        }
-        else {
+        } else {
             StatusBarUi.notWatching();
         }
     }
@@ -61,8 +63,7 @@ export class StatusBarUi {
                 StatusBarUi.statusBarItem.color = 'inherit';
                 StatusBarUi.watching();
             }, 4500);
-        }
-        else {
+        } else {
             StatusBarUi.notWatching();
         }
     }
@@ -70,5 +71,4 @@ export class StatusBarUi {
     public static dispose(): void {
         StatusBarUi.statusBarItem.dispose();
     }
-
 }

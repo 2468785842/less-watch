@@ -5,67 +5,74 @@ import { LessCompiler } from './LessCompiler';
 
 let appModel: AppModel;
 
-
 export function getDocument(): vscode.TextDocument | undefined {
-	const activeEditor: vscode.TextEditor | undefined = vscode.window.activeTextEditor;
-	if (activeEditor) {
-		return activeEditor.document;
-	}
-	return undefined;
+    const activeEditor: vscode.TextEditor | undefined =
+        vscode.window.activeTextEditor;
+    if (activeEditor) {
+        return activeEditor.document;
+    }
+    return undefined;
 }
 
 export function getRootPath(): string {
-	const workspaceFolder: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
-	if (workspaceFolder) {
-		return workspaceFolder[0].uri.fsPath;
-	}
-	throw "workspace folder error";
+    const workspaceFolder: readonly vscode.WorkspaceFolder[] | undefined =
+        vscode.workspace.workspaceFolders;
+    if (workspaceFolder) {
+        return workspaceFolder[0].uri.fsPath;
+    }
+    throw 'workspace folder error';
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    appModel = new AppModel();
 
-	appModel = new AppModel();
+    if (!LessCompiler.globalOptions.outputWindow) {
+        appModel.openOutputWindow();
+    }
 
-	if (!LessCompiler.globalOptions.outputWindow) {
-		appModel.openOutputWindow();
-	}
+    const disposableCompileAll = vscode.commands.registerCommand(
+        'lessWatch.command.watchLessOn',
+        () => {
+            appModel.compileAllFiles();
+        }
+    );
 
-	const disposableCompileAll =
-		vscode.commands.registerCommand('lessWatch.command.watchLessOn', () => {
-			appModel.compileAllFiles();
-		});
+    const disposableStopWatching = vscode.commands.registerCommand(
+        'lessWatch.command.watchLessOff',
+        () => {
+            appModel.stopWatching();
+        }
+    );
 
-	const disposableStopWatching =
-		vscode.commands.registerCommand('lessWatch.command.watchLessOff', () => {
-			appModel.stopWatching();
-		});
+    const disposableOneTimeCompileLess = vscode.commands.registerCommand(
+        'lessWatch.command.compileAllLess',
+        () => {
+            appModel.compileAllFiles(false);
+        }
+    );
 
-	const disposableOneTimeCompileLess =
-		vscode.commands.registerCommand('lessWatch.command.compileAllLess', () => {
-			appModel.compileAllFiles(false);
-		});
+    const disposableOpenOutputWindow = vscode.commands.registerCommand(
+        'lessWatch.command.openOutputWindow',
+        () => {
+            appModel.openOutputWindow();
+        }
+    );
 
-	const disposableOpenOutputWindow =
-		vscode.commands.registerCommand('lessWatch.command.openOutputWindow', () => {
-			appModel.openOutputWindow();
-		});
+    const disposableOnDivSave = vscode.workspace.onDidSaveTextDocument(() => {
+        appModel.compileOnSave();
+    });
 
-	const disposableOnDivSave =
-		vscode.workspace.onDidSaveTextDocument(() => {
-			appModel.compileOnSave();
-		});
-
-	context.subscriptions.push(
-		disposableCompileAll,
-		disposableStopWatching,
-		disposableOneTimeCompileLess,
-		disposableOpenOutputWindow,
-		disposableOnDivSave
-	);
+    context.subscriptions.push(
+        disposableCompileAll,
+        disposableStopWatching,
+        disposableOneTimeCompileLess,
+        disposableOpenOutputWindow,
+        disposableOnDivSave
+    );
 }
 
 export function deactivate() {
-	if (appModel) {
-		appModel.dispose();
-	}
+    if (appModel) {
+        appModel.dispose();
+    }
 }
